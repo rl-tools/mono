@@ -74,14 +74,6 @@ set(BUILD_SHARED_LIBS OFF)
 # RLtools::Optimizations: Minimal + Optimizations (e.g. -ffast-math, -march=native)
 # RLtools::OptimizationsCUDA: Optimizations + CUDA optimizations (e.g. --use_fast_math)
 # RLtools::RLtools: OptimizationsCUDA + everything else (e.g. UI, Mujoco)
-add_library(rl_tools_core INTERFACE) # This is the most "clean" target it just contains the include directories
-set_property(TARGET rl_tools_core PROPERTY EXPORT_NAME Core)
-target_compile_features(rl_tools_core INTERFACE cxx_std_17)
-target_include_directories(
-    rl_tools_core INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
         "${PROJECT_BINARY_DIR}/RLtoolsConfigVersion.cmake"
@@ -135,7 +127,6 @@ endif()
 
 
 
-target_link_libraries(rl_tools_core_definitions INTERFACE rl_tools_core)
 add_library(rl_tools_backend INTERFACE)
 set_property(TARGET rl_tools_backend PROPERTY EXPORT_NAME Backend)
 add_library(rl_tools_minimal INTERFACE) # This target additionally contains main and relatively harmless dependencies (BLAS, CLI11, TENSORBOARD, HDF5), the minimal config works with the CUDA comnpiler, when adding heavier dependencies in INTERFACE mode some cuda targets fail
@@ -515,10 +506,12 @@ endfunction()
 
 
 if (RL_TOOLS_ENABLE_TESTS)
+    set(INSTALL_GTEST OFF CACHE BOOL "")
+    set(BUILD_GMOCK OFF CACHE BOOL "")
+    add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+    include(GoogleTest)
     message(STATUS "Tests enabled")
-    include(CTest)
     enable_testing()
-    add_subdirectory(tests)
 endif()
 
 if(RL_TOOLS_EXPERIMENTAL)
@@ -531,6 +524,27 @@ endif()
 if(RL_TOOLS_ENABLE_WARNINGS)
     target_compile_definitions(rl_tools_core_definitions INTERFACE RL_TOOLS_ENABLE_WARNINGS)
 endif()
+
+set(THREEJS_VERSION r156)
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/static/ui_server/multirotor/lib/three.module.js")
+    file(DOWNLOAD "https://github.com/mrdoob/three.js/raw/${THREEJS_VERSION}/build/three.module.js"
+            "${PROJECT_SOURCE_DIR}/static/ui_server/multirotor/lib/three.module.js"
+    )
+endif()
+
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/static/ui_server/multirotor/lib/OrbitControls.js")
+    file(DOWNLOAD "https://github.com/mrdoob/three.js/raw/${THREEJS_VERSION}/examples/jsm/controls/OrbitControls.js"
+            "${PROJECT_SOURCE_DIR}/static/ui_server/multirotor/lib/OrbitControls.js"
+    )
+endif()
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/static/ui_server/
+        DESTINATION share/static/ui_server
+        FILES_MATCHING PATTERN "*.*"
+)
+
+add_subdirectory(core)
+target_link_libraries(rl_tools_core_definitions INTERFACE rl_tools_core)
 
 target_link_libraries(rl_tools_backend INTERFACE rl_tools_core_definitions)
 target_link_libraries(rl_tools_minimal INTERFACE rl_tools_backend)
@@ -546,7 +560,3 @@ add_library(RLtools::OptimizationsCUDA ALIAS rl_tools_optimizations_cuda)
 add_library(RLtools::RLtools ALIAS rl_tools)
 
 
-
-if(RL_TOOLS_ENABLE_TARGETS)
-add_subdirectory(src)
-endif()
