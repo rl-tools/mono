@@ -62,13 +62,17 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout Core
+        run: |
+          git submodule update --init -- core
+
       - name: Checkout Test Submodules
         run: |
-          git submodule update --init -- tests/lib/googletest
+          git submodule update --init -- external/googletest
 
       - name: Checkout Test Data Submodule
         run: |
-          git submodule update --init -- tests/data
+          git submodule update --init -- external/rl-tools-test-data
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.

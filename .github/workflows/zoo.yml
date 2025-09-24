@@ -71,6 +71,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libhdf5-dev
 
+      - name: Checkout Core
+        run: |
+          git submodule update --init -- core
+
       - name: Configure CMake
         run: >
           cmake -B build

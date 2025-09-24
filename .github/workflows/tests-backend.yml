@@ -68,6 +68,11 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           brew install cmake boost hdf5 protobuf
+
+      - name: Checkout Core
+        run: |
+          git submodule update --init -- core
+
       - name: Checkout External Submodules
         run: |
           git submodule update --init -- external/json
@@ -78,11 +83,11 @@ jobs:
 
       - name: Checkout Test Submodules
         run: |
-          git submodule update --init -- tests/lib/googletest
+          git submodule update --init -- external/googletest
 
       - name: Checkout Test Data Submodule
         run: |
-          git submodule update --init -- tests/data
+          git submodule update --init -- external/rl-tools-test-data
 
 
       - name: Set reusable strings
