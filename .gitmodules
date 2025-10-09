@@ -1,7 +1,7 @@
 # Core
 [submodule "core"]
 	path = core
-	url = https://github.com/rl-tools/core.git
+	url = https://github.com/rl-tools/rl-tools.git
 
 # RLtools components
 [submodule "docs"]
