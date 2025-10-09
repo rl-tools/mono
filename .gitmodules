@@ -1,6 +1,6 @@
 # Core
 [submodule "core"]
-	path = core
+	path = rl-tools
 	url = https://github.com/rl-tools/rl-tools.git
 
 # RLtools components
